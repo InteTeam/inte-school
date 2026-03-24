@@ -1,0 +1,83 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Tests · PHPStan · Pint
+    runs-on: ubuntu-latest
+
+    services:
+      postgresql:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_DB: inteschool_test
+          POSTGRES_USER: inteschool
+          POSTGRES_PASSWORD: secret
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: pdo_pgsql, pgsql, redis, mbstring, gd, zip, intl, bcmath, pcntl, exif
+          coverage: none
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: composer-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-
+
+      - name: Install PHP dependencies
+        run: composer install --optimize-autoloader --no-interaction --prefer-dist
+
+      - name: Prepare environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+          # Point at the service containers
+          echo "DB_HOST=127.0.0.1" >> .env
+          echo "DB_PORT=5432" >> .env
+          echo "DB_DATABASE=inteschool_test" >> .env
+          echo "DB_USERNAME=inteschool" >> .env
+          echo "DB_PASSWORD=secret" >> .env
+          echo "REDIS_HOST=127.0.0.1" >> .env
+          echo "REDIS_PASSWORD=" >> .env
+
+      - name: Run migrations
+        run: php artisan migrate --force
+
+      - name: PHPStan — static analysis
+        run: ./vendor/bin/phpstan analyse --memory-limit=512M --no-progress
+
+      - name: Pint — code style
+        run: ./vendor/bin/pint --test
+
+      - name: PHPUnit — test suite
+        run: php artisan test --parallel

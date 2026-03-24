@@ -1,0 +1,136 @@
+{
+    "app": {
+        "name": "Inte-School"
+    },
+    "auth": {
+        "sign_in": "Sign in",
+        "sign_in_description": "Sign in to your school account",
+        "signing_in": "Signing in...",
+        "welcome_back": "Welcome back",
+        "email": "Email address",
+        "password": "Password",
+        "new_password": "New password",
+        "confirm_password": "Confirm password",
+        "remember_me": "Remember me",
+        "forgot_password": "Forgot password?",
+        "forgot_password_description": "Enter your email and we will send you a reset link.",
+        "send_reset_link": "Send reset link",
+        "sending": "Sending...",
+        "reset_password": "Reset password",
+        "reset_password_description": "Enter your new password below.",
+        "resetting": "Resetting...",
+        "back_to_login": "Back to login",
+        "two_factor": "Two-factor authentication",
+        "enter_auth_code": "Enter the code from your authenticator app.",
+        "enter_recovery_code": "Enter one of your recovery codes.",
+        "auth_code": "Authentication code",
+        "recovery_code": "Recovery code",
+        "remember_device": "Remember this device for 30 days",
+        "verify": "Verify",
+        "verifying": "Verifying...",
+        "use_recovery_code": "Use a recovery code instead",
+        "use_auth_app": "Use authenticator app instead",
+        "register_device": "Register device",
+        "register_device_description": "Give your device a name to help you identify it later.",
+        "device_name": "Device name",
+        "device_name_placeholder": "e.g. My iPhone, Home laptop",
+        "registering": "Registering..."
+    },
+    "common": {
+        "active": "Active",
+        "inactive": "Inactive",
+        "deleted": "Deleted",
+        "next": "Next",
+        "back": "Back",
+        "save_draft": "Save draft",
+        "saving": "Saving...",
+        "publishing": "Publishing...",
+        "edit": "Edit",
+        "status": "Status",
+        "actions": "Actions"
+    },
+    "onboarding": {
+        "title": "Set up your school",
+        "school_created": "School created successfully!",
+        "creating": "Creating...",
+        "create_school": "Create school",
+        "slug_taken": "This URL is already taken. Please choose another.",
+        "step1": {
+            "title": "Step 1: School details",
+            "heading": "Tell us about your school",
+            "school_name": "School name",
+            "school_name_placeholder": "e.g. Greenfield Academy",
+            "slug": "School URL (subdomain)"
+        },
+        "step2": {
+            "title": "Step 2: Logo & theme",
+            "heading": "Brand your school",
+            "logo": "School logo",
+            "primary_color": "Primary brand colour"
+        },
+        "step3": {
+            "title": "Step 3: Legal documents",
+            "heading": "Legal documents",
+            "description": "We've pre-filled your legal documents from platform templates. You can review and edit them after setup.",
+            "pre_filled_note": "The following documents will be created for your school:",
+            "privacy_policy": "Privacy Policy",
+            "terms_conditions": "Terms & Conditions",
+            "edit_after_note": "You must publish both documents before your school goes live."
+        },
+        "step4": {
+            "title": "Step 4: Review & create",
+            "heading": "Ready to create your school",
+            "description": "Everything looks good. Click Create school to finish setup."
+        }
+    },
+    "legal": {
+        "version": "Version",
+        "publish": "Publish",
+        "publish_version": "New version number",
+        "published": "Document published successfully.",
+        "saved": "Document saved.",
+        "document_name": "Document name",
+        "type": "Type",
+        "types": {
+            "privacy_policy": "Privacy Policy",
+            "terms_conditions": "Terms & Conditions"
+        },
+        "edit": {
+            "title": "Edit {{type}}",
+            "content_placeholder": "Start writing your document...",
+            "toolbar_hint": "Use the editor to format your document."
+        },
+        "accept": {
+            "title": "Review & accept our policies",
+            "description": "Please read and accept our policies to continue.",
+            "agreement_text": "By clicking Accept all, you confirm you have read and agree to the above documents.",
+            "accept_all": "Accept all & continue",
+            "accepting": "Accepting..."
+        }
+    },
+    "root_admin": {
+        "nav": {
+            "dashboard": "Dashboard",
+            "schools": "Schools"
+        },
+        "dashboard": {
+            "title": "Platform Dashboard"
+        },
+        "stats": {
+            "total_schools": "Total schools",
+            "active_schools": "Active schools",
+            "total_users": "Total users"
+        },
+        "schools": {
+            "title": "All Schools",
+            "name": "Name",
+            "slug": "Slug",
+            "plan": "Plan",
+            "status": "Status",
+            "empty": "No schools yet."
+        },
+        "legal_templates": {
+            "title": "Legal Document Templates"
+        }
+    }
+}
