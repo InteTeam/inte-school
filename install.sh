@@ -2,6 +2,15 @@
 # install.sh — Inte-School one-command installer for school.inte.team
 # Usage:  sudo bash install.sh [--repo <git-url>] [--branch <branch>]
 # Tested: Ubuntu 22.04 / 24.04
+#
+# WARNING: This script runs `docker compose up -d --build`.
+# On servers with OTHER services (NPM, Mailu, CRM, etc.)
+# this can disrupt shared Docker networks and bring down
+# co-hosted services.
+#
+# For production config changes: edit docker-compose files
+# directly and restart only the affected container.
+# ONLY use this script for FIRST-TIME deployment.
 
 set -euo pipefail
 
