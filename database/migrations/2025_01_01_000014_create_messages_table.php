@@ -25,16 +25,23 @@ return new class extends Migration
 
             $table->foreign('school_id')->references('id')->on('schools')->onDelete('cascade');
             $table->foreign('sender_id')->references('id')->on('users')->onDelete('cascade');
-            $table->foreign('thread_id')->references('id')->on('messages')->onDelete('cascade');
 
             $table->index(['school_id', 'created_at'], 'idx_messages_school_created');
             $table->index(['school_id', 'thread_id'], 'idx_messages_school_thread');
             $table->index(['school_id', 'type'], 'idx_messages_school_type');
         });
+
+        // Self-referencing FK must be added after the table (and its PK) exists
+        Schema::table('messages', function (Blueprint $table) {
+            $table->foreign('thread_id')->references('id')->on('messages')->onDelete('cascade');
+        });
     }
 
     public function down(): void
     {
+        Schema::table('messages', function (Blueprint $table) {
+            $table->dropForeign(['thread_id']);
+        });
         Schema::dropIfExists('messages');
     }
 };
