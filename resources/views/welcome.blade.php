@@ -32,9 +32,14 @@
             <div class="w-8 h-8 bg-purple-700 rounded-lg flex items-center justify-center text-white text-sm">inte</div>
             <span class="tracking-tight text-purple-900">School</span>
         </div>
-        <a href="#contact" class="bg-orange-500 hover:bg-orange-600 text-white px-5 py-2 rounded-full font-medium transition-all text-sm">
-            Book a Demo
-        </a>
+        <div class="flex items-center gap-4">
+            <a href="/login" class="text-purple-700 hover:text-purple-900 font-medium text-sm transition-all">
+                Sign In
+            </a>
+            <a href="#contact" class="bg-orange-500 hover:bg-orange-600 text-white px-5 py-2 rounded-full font-medium transition-all text-sm">
+                Book a Demo
+            </a>
+        </div>
     </nav>
 
     <header class="hero-pattern px-6 py-16 md:py-32 text-center max-w-5xl mx-auto">

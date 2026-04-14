@@ -18,6 +18,15 @@ use App\Http\Controllers\Support\DashboardController as SupportDashboardControll
 use App\Http\Controllers\Teacher\DashboardController as TeacherDashboardController;
 use Illuminate\Support\Facades\Route;
 
+// --- Landing page (public) ---
+Route::get('/', function () {
+    if (auth()->check()) {
+        return redirect()->route('dashboard');
+    }
+
+    return response()->view('welcome');
+})->name('welcome');
+
 // --- Auth ---
 Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'create'])->name('login');
