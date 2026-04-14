@@ -51,12 +51,12 @@
             The only two-way communication platform designed to bypass cloud-middlemen, ensuring 100% GDPR sovereignty and higher parental engagement.
         </p>
         <div class="mt-10 flex flex-col md:flex-row gap-4 justify-center">
-            <button class="bg-purple-700 text-white px-8 py-4 rounded-xl font-bold shadow-lg shadow-purple-200 hover:-translate-y-1 transition-all">
+            <a href="#contact" class="bg-purple-700 text-white px-8 py-4 rounded-xl font-bold shadow-lg shadow-purple-200 hover:-translate-y-1 transition-all inline-block">
                 Start Pilot (PEF Eligible)
-            </button>
-            <button class="bg-white border-2 border-slate-200 text-slate-700 px-8 py-4 rounded-xl font-bold hover:bg-slate-50 transition-all">
+            </a>
+            <a href="#contact" class="bg-white border-2 border-slate-200 text-slate-700 px-8 py-4 rounded-xl font-bold hover:bg-slate-50 transition-all inline-block">
                 View Compliance Pack
-            </button>
+            </a>
         </div>
     </header>
 
@@ -160,6 +160,22 @@
             </div>
         </div>
     </section>
+
+    <section id="contact" class="px-6 py-20 bg-white">
+        <div class="max-w-3xl mx-auto text-center">
+            <h2 class="text-3xl font-bold text-slate-900 mb-4">Get in Touch</h2>
+            <p class="text-slate-600 mb-10">Interested in a pilot? Book a demo or ask us anything.</p>
+            <div id="form-ecdd1529-d1fa-48d5-82b5-1362536b46dc"></div>
+        </div>
+    </section>
+    <script src="https://crm.bookrepaironline.co.uk/js/form-embed.js"></script>
+    <script>
+        FormEmbed.render('ecdd1529-d1fa-48d5-82b5-1362536b46dc', {
+            container: '#form-ecdd1529-d1fa-48d5-82b5-1362536b46dc',
+            apiBase: 'https://crm.bookrepaironline.co.uk',
+            theme: 'light'
+        });
+    </script>
 
     <footer class="bg-white px-6 py-12">
         <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">

@@ -1,6 +1,7 @@
 # Documentation & Test Gaps — Task List
 
 > Created: 2026-04-14
+> Last updated: 2026-04-14
 > Sequencing: see `DOCUMENTATION_AND_TESTS_PLAN.md` for priority order and weekly breakdown
 
 ---
@@ -9,16 +10,16 @@
 
 Each feature needs: `docs/features/{name}/README.md`, `architecture.md`, `COMPONENT_INVENTORY.md`
 
-- [ ] **Messaging** — compose, threads, attachments, bulk send, notification cascade, SMS fallback
-- [ ] **Attendance** — registers, records, hardware API, CSV export, absence alerts
-- [ ] **Calendar & Events** — calendars, events, recurring, cross-role visibility, observer cache
-- [ ] **Tasks / Homework** — create, templates, template groups, deadline alerts, parent/student view
-- [ ] **Documents & RAG** — upload, chunking, pgvector search, AI Q&A (parent/student Ask)
-- [ ] **Statistics & API** — dashboard analytics, REST API, API key auth, rate limiting
-- [ ] **Root Admin** — school CRUD, feature request lifecycle, legal template management
-- [ ] **User Management** — staff invite, student enrolment, CSV import, guardian linking, disable/enable
-- [ ] **Settings** — general, notifications, security, API keys, legal, feature requests
-- [ ] **Onboarding** — 4-step wizard, school creation, initial config
+- [x] **Messaging** — compose, threads, attachments, bulk send, notification cascade, SMS fallback
+- [x] **Attendance** — registers, records, hardware API, CSV export, absence alerts
+- [x] **Calendar & Events** — calendars, events, recurring, cross-role visibility, observer cache
+- [x] **Tasks / Homework** — create, templates, template groups, deadline alerts, parent/student view
+- [x] **Documents & RAG** — upload, chunking, pgvector search, AI Q&A (parent/student Ask)
+- [x] **Statistics & API** — dashboard analytics, REST API, API key auth, rate limiting
+- [x] **Root Admin** — school CRUD, feature request lifecycle, legal template management
+- [x] **User Management** — staff invite, student enrolment, CSV import, guardian linking, disable/enable
+- [x] **Settings** — general, notifications, security, API keys, legal, feature requests
+- [x] **Onboarding** — 4-step wizard, school creation, initial config
 
 ---
 
@@ -27,50 +28,50 @@ Each feature needs: `docs/features/{name}/README.md`, `architecture.md`, `COMPON
 Each migration needs a doc in `docs/database/migrations/NNN_{name}.md`
 
 ### Core (001–006, 010)
-- [ ] 001 — pgvector extension (exists, just needs review)
-- [ ] 003 — registered_devices
-- [ ] 004 — action_tokens
-- [ ] 005 — schools
-- [ ] 006 — school foreign keys
-- [ ] 010 — school_user pivot
+- [x] 001 — pgvector extension (exists, just needs review)
+- [x] 003 — registered_devices
+- [x] 004 — action_tokens
+- [x] 005 — schools
+- [x] 006 — school foreign keys
+- [x] 010 — school_user pivot
 
 ### Legal (007–009)
-- [ ] 007 — legal_document_templates
-- [ ] 008 — school_legal_documents
-- [ ] 009 — user_legal_acceptances
+- [x] 007 — legal_document_templates
+- [x] 008 — school_legal_documents
+- [x] 009 — user_legal_acceptances
 
 ### Academic (011–013)
-- [ ] 011 — classes
-- [ ] 012 — class_students
-- [ ] 013 — guardian_student
+- [x] 011 — classes
+- [x] 012 — class_students
+- [x] 013 — guardian_student
 
 ### Messaging (014–016)
-- [ ] 014 — messages
-- [ ] 015 — message_recipients
-- [ ] 016 — message_attachments
+- [x] 014 — messages
+- [x] 015 — message_recipients
+- [x] 016 — message_attachments
 
 ### Attendance (017–019)
-- [ ] 017 — attendance_registers
-- [ ] 018 — attendance_records
-- [ ] 019 — hardware_device_tokens
+- [x] 017 — attendance_registers
+- [x] 018 — attendance_records
+- [x] 019 — hardware_device_tokens
 
 ### Calendar (020–021)
-- [ ] 020 — calendars
-- [ ] 021 — calendar_events
+- [x] 020 — calendars
+- [x] 021 — calendar_events
 
 ### Tasks (022–025)
-- [ ] 022 — tasks
-- [ ] 023 — task_template_groups
-- [ ] 024 — task_templates
-- [ ] 025 — task_items
+- [x] 022 — tasks
+- [x] 023 — task_template_groups
+- [x] 024 — task_templates
+- [x] 025 — task_items
 
 ### Documents (026–027)
-- [ ] 026 — documents
-- [ ] 027 — document_chunks (pgvector)
+- [x] 026 — documents
+- [x] 027 — document_chunks (pgvector)
 
 ### Admin (028–029)
-- [ ] 028 — school_api_keys
-- [ ] 029 — feature_requests
+- [x] 028 — school_api_keys
+- [x] 029 — feature_requests
 
 ---
 
