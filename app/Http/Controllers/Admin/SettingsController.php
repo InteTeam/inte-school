@@ -11,7 +11,9 @@ use App\Http\Requests\Admin\UpdateSecuritySettingsRequest;
 use App\Models\School;
 use App\Models\SchoolLegalDocument;
 use App\Services\SchoolService;
+use App\Services\SmsService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Crypt;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -59,16 +61,36 @@ class SettingsController extends Controller
     public function notifications(): Response
     {
         $school = $this->currentSchool();
+        $smsService = app(SmsService::class);
+        $settings = $school->notification_settings ?? [];
 
         return Inertia::render('Admin/Settings/Notifications', [
-            'notification_settings' => $school->notification_settings ?? [],
+            'notification_settings' => $settings,
+            'has_notify_key' => ! empty($settings['govuk_notify_api_key']),
+            'has_notify_template' => ! empty($settings['govuk_notify_template_id']),
+            'sms_usage' => [
+                'sent_this_year' => $smsService->getUsageThisYear($school->id),
+                'free_remaining' => $smsService->getRemainingFreeTexts($school->id),
+                'free_allowance' => (int) config('services.govuk_notify.free_allowance', 5000),
+                'approaching_limit' => $smsService->isApproachingLimit($school->id),
+            ],
         ]);
     }
 
     public function updateNotifications(UpdateNotificationSettingsRequest $request): RedirectResponse
     {
         $school = $this->currentSchool();
-        $this->schoolService->updateNotificationSettings($school, $request->validated());
+        $validated = $request->validated();
+
+        // Encrypt the API key before storing — never store in plaintext
+        if (! empty($validated['govuk_notify_api_key'])) {
+            $validated['govuk_notify_api_key'] = Crypt::encryptString($validated['govuk_notify_api_key']);
+        } else {
+            // If empty, don't overwrite existing key (allow partial update)
+            unset($validated['govuk_notify_api_key']);
+        }
+
+        $this->schoolService->updateNotificationSettings($school, $validated);
 
         return redirect()->route('admin.settings.notifications')
             ->with(['alert' => __('settings.notifications_updated'), 'type' => 'success']);
