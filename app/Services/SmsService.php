@@ -5,35 +5,40 @@ declare(strict_types=1);
 namespace App\Services;
 
 use Alphagov\Notifications\Client as NotifyClient;
+use App\Models\School;
 use App\Models\SmsLog;
 use App\Models\User;
 use App\Notifications\SmsProviderDownNotification;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 
 final class SmsService
 {
-    private ?NotifyClient $client = null;
+    /** @var array<string, NotifyClient> keyed by school_id or 'platform' */
+    private array $clients = [];
 
     /**
      * Allow injection of a mock client for testing.
      */
     public function setClient(NotifyClient $client): void
     {
-        $this->client = $client;
+        $this->clients['__test__'] = $client;
     }
 
     /**
      * Send an SMS via GOV.UK Notify. Never throws — logs and returns false on failure.
+     *
+     * Resolves API key per-school first, falls back to platform config.
      */
     public function send(string $phoneNumber, string $body, ?string $schoolId = null, ?string $recipientId = null, ?string $messageId = null): bool
     {
-        $apiKey = config('services.govuk_notify.api_key');
-        $templateId = config('services.govuk_notify.sms_template_id');
+        $credentials = $this->resolveCredentials($schoolId);
 
-        if (empty($apiKey) || empty($templateId)) {
+        if ($credentials === null) {
             Log::warning('GOV.UK Notify not configured — SMS skipped', [
+                'school_id' => $schoolId,
                 'to' => $this->maskPhone($phoneNumber),
             ]);
 
@@ -41,12 +46,12 @@ final class SmsService
         }
 
         try {
-            $client = $this->getClient($apiKey);
+            $client = $this->getClient($credentials['api_key'], $schoolId);
             $segments = $this->calculateSegments($body);
 
             $response = $client->sendSms(
                 $phoneNumber,
-                $templateId,
+                $credentials['template_id'],
                 ['body' => $body],
             );
 
@@ -67,14 +72,17 @@ final class SmsService
             }
 
             Log::info('SMS sent via GOV.UK Notify', [
+                'school_id' => $schoolId,
                 'to' => $this->maskPhone($phoneNumber),
                 'notify_id' => $notifyId,
                 'segments' => $segments,
+                'source' => $credentials['source'],
             ]);
 
             return true;
         } catch (\Throwable $e) {
             Log::error('SMS send failed via GOV.UK Notify', [
+                'school_id' => $schoolId,
                 'to' => $this->maskPhone($phoneNumber),
                 'error' => $e->getMessage(),
             ]);
@@ -98,6 +106,55 @@ final class SmsService
 
             return false;
         }
+    }
+
+    /**
+     * Resolve Notify credentials: per-school first, platform config fallback.
+     *
+     * @return array{api_key: string, template_id: string, source: string}|null
+     */
+    public function resolveCredentials(?string $schoolId): ?array
+    {
+        // Per-school credentials (encrypted in notification_settings JSONB)
+        if ($schoolId !== null) {
+            $school = School::find($schoolId);
+
+            if ($school !== null) {
+                $encryptedKey = $school->getNotificationSetting('govuk_notify_api_key');
+                $templateId = $school->getNotificationSetting('govuk_notify_template_id');
+
+                if (! empty($encryptedKey) && ! empty($templateId)) {
+                    try {
+                        $apiKey = Crypt::decryptString($encryptedKey);
+
+                        return [
+                            'api_key' => $apiKey,
+                            'template_id' => $templateId,
+                            'source' => 'school',
+                        ];
+                    } catch (\Throwable $e) {
+                        Log::error('Failed to decrypt school Notify API key', [
+                            'school_id' => $schoolId,
+                            'error' => $e->getMessage(),
+                        ]);
+                    }
+                }
+            }
+        }
+
+        // Platform-level fallback (from .env — for testing or schools without own key)
+        $apiKey = config('services.govuk_notify.api_key');
+        $templateId = config('services.govuk_notify.sms_template_id');
+
+        if (! empty($apiKey) && ! empty($templateId)) {
+            return [
+                'api_key' => $apiKey,
+                'template_id' => $templateId,
+                'source' => 'platform',
+            ];
+        }
+
+        return null;
     }
 
     /**
@@ -194,16 +251,23 @@ final class SmsService
         return substr($phone, 0, 3) . str_repeat('*', $len - 7) . substr($phone, -4);
     }
 
-    private function getClient(string $apiKey): NotifyClient
+    private function getClient(string $apiKey, ?string $schoolId = null): NotifyClient
     {
-        if ($this->client === null) {
-            $this->client = new NotifyClient([
+        // Test mock takes priority
+        if (isset($this->clients['__test__'])) {
+            return $this->clients['__test__'];
+        }
+
+        $cacheKey = $schoolId ?? 'platform';
+
+        if (! isset($this->clients[$cacheKey])) {
+            $this->clients[$cacheKey] = new NotifyClient([
                 'apiKey' => $apiKey,
                 'httpClient' => new \Http\Adapter\Guzzle7\Client(),
             ]);
         }
 
-        return $this->client;
+        return $this->clients[$cacheKey];
     }
 
     private function alertRootAdmin(string $errorMessage): void

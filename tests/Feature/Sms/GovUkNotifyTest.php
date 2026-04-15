@@ -14,6 +14,7 @@ use App\Models\SmsLog;
 use App\Models\User;
 use App\Services\SmsService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Str;
 use Mockery;
 use Tests\TestCase;
@@ -492,5 +493,118 @@ final class GovUkNotifyTest extends TestCase
         $job->handle($service);
 
         $this->assertSame(0, SmsLog::withoutGlobalScope(SchoolScope::class)->count());
+    }
+
+    // --- Per-school credential resolution ---
+
+    public function test_resolves_per_school_credentials_when_configured(): void
+    {
+        $encryptedKey = Crypt::encryptString('school-specific-api-key');
+        $this->school->update([
+            'notification_settings' => array_merge(
+                $this->school->notification_settings ?? [],
+                [
+                    'govuk_notify_api_key' => $encryptedKey,
+                    'govuk_notify_template_id' => 'school-template-id',
+                ],
+            ),
+        ]);
+
+        $service = app(SmsService::class);
+        $credentials = $service->resolveCredentials($this->school->id);
+
+        $this->assertNotNull($credentials);
+        $this->assertSame('school-specific-api-key', $credentials['api_key']);
+        $this->assertSame('school-template-id', $credentials['template_id']);
+        $this->assertSame('school', $credentials['source']);
+    }
+
+    public function test_falls_back_to_platform_when_school_has_no_credentials(): void
+    {
+        // School has no govuk_notify keys in notification_settings
+        $service = app(SmsService::class);
+        $credentials = $service->resolveCredentials($this->school->id);
+
+        $this->assertNotNull($credentials);
+        $this->assertSame('test-key-for-testing', $credentials['api_key']);
+        $this->assertSame('template-id-for-testing', $credentials['template_id']);
+        $this->assertSame('platform', $credentials['source']);
+    }
+
+    public function test_returns_null_when_no_credentials_anywhere(): void
+    {
+        config([
+            'services.govuk_notify.api_key' => null,
+            'services.govuk_notify.sms_template_id' => null,
+        ]);
+
+        $service = app(SmsService::class);
+        $credentials = $service->resolveCredentials($this->school->id);
+
+        $this->assertNull($credentials);
+    }
+
+    public function test_per_school_key_is_encrypted_at_rest(): void
+    {
+        $rawKey = 'my-secret-api-key';
+        $encryptedKey = Crypt::encryptString($rawKey);
+
+        // Encrypted value should NOT contain the raw key
+        $this->assertStringNotContainsString($rawKey, $encryptedKey);
+
+        // But should decrypt back
+        $this->assertSame($rawKey, Crypt::decryptString($encryptedKey));
+    }
+
+    public function test_corrupted_encrypted_key_falls_back_to_platform(): void
+    {
+        $this->school->update([
+            'notification_settings' => array_merge(
+                $this->school->notification_settings ?? [],
+                [
+                    'govuk_notify_api_key' => 'not-valid-encrypted-data',
+                    'govuk_notify_template_id' => 'template-id',
+                ],
+            ),
+        ]);
+
+        $service = app(SmsService::class);
+        $credentials = $service->resolveCredentials($this->school->id);
+
+        // Should fall back to platform credentials
+        $this->assertNotNull($credentials);
+        $this->assertSame('platform', $credentials['source']);
+    }
+
+    public function test_each_school_uses_its_own_credentials(): void
+    {
+        $schoolA = $this->school;
+        $schoolA->update([
+            'notification_settings' => array_merge(
+                $schoolA->notification_settings ?? [],
+                [
+                    'govuk_notify_api_key' => Crypt::encryptString('key-for-school-a'),
+                    'govuk_notify_template_id' => 'template-a',
+                ],
+            ),
+        ]);
+
+        $schoolB = School::factory()->create([
+            'notification_settings' => [
+                'sms_fallback_enabled' => true,
+                'govuk_notify_api_key' => Crypt::encryptString('key-for-school-b'),
+                'govuk_notify_template_id' => 'template-b',
+            ],
+        ]);
+
+        $service = app(SmsService::class);
+
+        $credsA = $service->resolveCredentials($schoolA->id);
+        $credsB = $service->resolveCredentials($schoolB->id);
+
+        $this->assertSame('key-for-school-a', $credsA['api_key']);
+        $this->assertSame('key-for-school-b', $credsB['api_key']);
+        $this->assertSame('template-a', $credsA['template_id']);
+        $this->assertSame('template-b', $credsB['template_id']);
     }
 }
