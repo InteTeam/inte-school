@@ -282,6 +282,17 @@
         });
     </script>
 
+    <!-- Trust Strip -->
+    <section class="px-6 py-12 bg-white border-t border-slate-100">
+        <div class="max-w-3xl mx-auto text-center">
+            <p class="text-4xl font-extrabold text-slate-900">784 <span class="text-purple-700">and growing</span></p>
+            <p class="text-slate-600 mt-3 leading-relaxed max-w-xl mx-auto">
+                automated quality checks run before any update reaches your school. Every button, every message, every permission boundary&mdash;tested. We engineered the mistakes out.
+            </p>
+            <p class="text-xs text-slate-400 mt-4 uppercase tracking-widest">Built to be un-breakable by design</p>
+        </div>
+    </section>
+
     <footer class="bg-white px-6 py-12">
         <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
             <div class="text-center md:text-left">
