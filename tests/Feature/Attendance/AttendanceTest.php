@@ -278,4 +278,95 @@ final class AttendanceTest extends TestCase
         $this->assertSame(1, $stats['absent']);
         $this->assertSame(0, $stats['late']);
     }
+
+    // --- SOP: Guest redirect ---
+
+    public function test_guest_cannot_access_attendance(): void
+    {
+        $this->get(route('teacher.attendance.index'))->assertRedirect('/login');
+    }
+
+    public function test_guest_cannot_mark_attendance(): void
+    {
+        $this->post(route('teacher.attendance.mark'), [])->assertRedirect('/login');
+    }
+
+    // --- SOP: Wrong role ---
+
+    public function test_parent_cannot_access_attendance_routes(): void
+    {
+        $this->fulfillLegalRequirements($this->parent);
+
+        $this->withoutExceptionHandling();
+        $this->expectException(\Symfony\Component\HttpKernel\Exception\HttpException::class);
+
+        $this->actingAs($this->parent)
+            ->withSession(['current_school_id' => $this->school->id])
+            ->get(route('teacher.attendance.index'));
+    }
+
+    public function test_student_cannot_mark_attendance(): void
+    {
+        $this->fulfillLegalRequirements($this->student);
+
+        $this->withoutExceptionHandling();
+        $this->expectException(\Symfony\Component\HttpKernel\Exception\HttpException::class);
+
+        $this->actingAs($this->student)
+            ->withSession(['current_school_id' => $this->school->id])
+            ->post(route('teacher.attendance.mark'), []);
+    }
+
+    // --- SOP: Multi-tenant isolation ---
+
+    public function test_attendance_records_scoped_to_school(): void
+    {
+        $service = app(AttendanceService::class);
+        $register = $service->openOrGetRegister($this->school, $this->teacher, $this->class->id, now());
+        $service->mark($register, $this->student->id, 'present', $this->teacher);
+
+        $otherSchool = School::factory()->create();
+        $this->actingAs($this->admin)->withSession(['current_school_id' => $otherSchool->id]);
+
+        $visible = AttendanceRecord::where('student_id', $this->student->id)->count();
+        $this->assertSame(0, $visible);
+    }
+
+    // --- Helper ---
+
+    private function fulfillLegalRequirements(User $user): void
+    {
+        $privacyDoc = \App\Models\SchoolLegalDocument::withoutGlobalScope(SchoolScope::class)
+            ->where('school_id', $this->school->id)->where('type', 'privacy_policy')->first();
+
+        if ($privacyDoc === null) {
+            $rootAdmin = User::where('is_root_admin', true)->first() ?? $this->admin;
+            $privacyDoc = \App\Models\SchoolLegalDocument::forceCreate([
+                'school_id' => $this->school->id, 'type' => 'privacy_policy',
+                'content' => '<p>Privacy</p>', 'version' => '1.0', 'is_published' => true,
+                'published_at' => now(), 'published_by' => $rootAdmin->id, 'created_by' => $rootAdmin->id,
+            ]);
+        }
+
+        $termsDoc = \App\Models\SchoolLegalDocument::withoutGlobalScope(SchoolScope::class)
+            ->where('school_id', $this->school->id)->where('type', 'terms_conditions')->first();
+
+        if ($termsDoc === null) {
+            $rootAdmin = User::where('is_root_admin', true)->first() ?? $this->admin;
+            $termsDoc = \App\Models\SchoolLegalDocument::forceCreate([
+                'school_id' => $this->school->id, 'type' => 'terms_conditions',
+                'content' => '<p>Terms</p>', 'version' => '1.0', 'is_published' => true,
+                'published_at' => now(), 'published_by' => $rootAdmin->id, 'created_by' => $rootAdmin->id,
+            ]);
+        }
+
+        foreach ([$privacyDoc, $termsDoc] as $doc) {
+            \App\Models\UserLegalAcceptance::forceCreate([
+                'school_id' => $this->school->id, 'user_id' => $user->id,
+                'document_id' => $doc->id, 'document_type' => $doc->type,
+                'document_version' => $doc->version, 'accepted_at' => now(),
+                'ip_address' => '127.0.0.1', 'user_agent' => 'test', 'created_at' => now(),
+            ]);
+        }
+    }
 }

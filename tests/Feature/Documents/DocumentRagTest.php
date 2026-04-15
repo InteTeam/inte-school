@@ -318,4 +318,21 @@ final class DocumentRagTest extends TestCase
 
         $response->assertStatus(403);
     }
+
+    // --- SOP: Guest redirect ---
+
+    public function test_guest_cannot_access_documents(): void
+    {
+        $this->get(route('documents.index'))->assertRedirect('/login');
+    }
+
+    public function test_guest_cannot_upload_document(): void
+    {
+        $this->post(route('documents.store'), [])->assertRedirect('/login');
+    }
+
+    public function test_guest_cannot_query_rag(): void
+    {
+        $this->postJson(route('documents.query'), ['question' => 'test'])->assertStatus(401);
+    }
 }

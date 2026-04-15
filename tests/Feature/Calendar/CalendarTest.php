@@ -271,4 +271,48 @@ final class CalendarTest extends TestCase
         $this->assertSame('Earlier Event', $events[0]['title']);
         $this->assertSame('Later Event', $events[1]['title']);
     }
+
+    // --- SOP: Guest redirect ---
+
+    public function test_guest_cannot_access_calendar(): void
+    {
+        $this->get(route('calendar.index'))->assertRedirect('/login');
+    }
+
+    public function test_guest_cannot_create_calendar(): void
+    {
+        $this->post(route('calendar.store'), [])->assertRedirect('/login');
+    }
+
+    // --- SOP: Wrong role ---
+
+    public function test_parent_cannot_create_calendar(): void
+    {
+        $parent = User::factory()->create(['email' => 'cal-parent@example.com']);
+        $this->school->users()->attach($parent->id, [
+            'id' => Str::ulid(), 'role' => 'parent',
+            'accepted_at' => now(), 'invited_at' => now(),
+        ]);
+
+        $this->withoutExceptionHandling();
+        $this->expectException(\Symfony\Component\HttpKernel\Exception\HttpException::class);
+
+        $this->actingAs($parent)
+            ->withSession(['current_school_id' => $this->school->id])
+            ->post(route('calendar.store'), ['name' => 'Hack', 'type' => 'internal']);
+    }
+
+    // --- SOP: Multi-tenant isolation ---
+
+    public function test_calendar_scoped_to_school(): void
+    {
+        $service = app(CalendarService::class);
+        $service->createCalendar($this->school, ['name' => 'School A Calendar', 'type' => 'internal']);
+
+        $otherSchool = School::factory()->create();
+        $this->actingAs($this->admin)->withSession(['current_school_id' => $otherSchool->id]);
+
+        $visible = Calendar::where('name', 'School A Calendar')->count();
+        $this->assertSame(0, $visible);
+    }
 }

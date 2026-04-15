@@ -312,4 +312,82 @@ final class UserManagementTest extends TestCase
         $visibleLinks = GuardianStudent::where('student_id', $student->id)->count();
         $this->assertSame(0, $visibleLinks);
     }
+
+    // --- SOP: Guest redirect ---
+
+    public function test_guest_cannot_access_staff_management(): void
+    {
+        $this->get(route('admin.staff.index'))->assertRedirect('/login');
+    }
+
+    public function test_guest_cannot_access_student_management(): void
+    {
+        $this->get(route('admin.students.index'))->assertRedirect('/login');
+    }
+
+    public function test_guest_cannot_invite_staff(): void
+    {
+        $this->post(route('admin.staff.invite'), [])->assertRedirect('/login');
+    }
+
+    // --- SOP: Wrong role ---
+
+    public function test_teacher_cannot_invite_staff(): void
+    {
+        $teacher = User::factory()->create(['email' => 'teacher@example.com']);
+        $this->school->users()->attach($teacher->id, [
+            'id' => \Illuminate\Support\Str::ulid(),
+            'role' => 'teacher',
+            'accepted_at' => now(),
+            'invited_at' => now(),
+        ]);
+        $this->fulfillLegalRequirements($teacher);
+
+        $this->withoutExceptionHandling();
+        $this->expectException(\Symfony\Component\HttpKernel\Exception\HttpException::class);
+
+        $this->actingAs($teacher)
+            ->withSession(['current_school_id' => $this->school->id])
+            ->post(route('admin.staff.invite'), [
+                'name' => 'Hacker',
+                'email' => 'hacker@example.com',
+                'role' => 'admin',
+            ]);
+    }
+
+    // --- Helper ---
+
+    private function fulfillLegalRequirements(User $user): void
+    {
+        $privacyDoc = \App\Models\SchoolLegalDocument::withoutGlobalScope(\App\Models\Scopes\SchoolScope::class)
+            ->where('school_id', $this->school->id)->where('type', 'privacy_policy')->first();
+
+        if ($privacyDoc === null) {
+            $privacyDoc = \App\Models\SchoolLegalDocument::forceCreate([
+                'school_id' => $this->school->id, 'type' => 'privacy_policy',
+                'content' => '<p>Privacy</p>', 'version' => '1.0', 'is_published' => true,
+                'published_at' => now(), 'published_by' => $this->rootAdmin->id, 'created_by' => $this->rootAdmin->id,
+            ]);
+        }
+
+        $termsDoc = \App\Models\SchoolLegalDocument::withoutGlobalScope(\App\Models\Scopes\SchoolScope::class)
+            ->where('school_id', $this->school->id)->where('type', 'terms_conditions')->first();
+
+        if ($termsDoc === null) {
+            $termsDoc = \App\Models\SchoolLegalDocument::forceCreate([
+                'school_id' => $this->school->id, 'type' => 'terms_conditions',
+                'content' => '<p>Terms</p>', 'version' => '1.0', 'is_published' => true,
+                'published_at' => now(), 'published_by' => $this->rootAdmin->id, 'created_by' => $this->rootAdmin->id,
+            ]);
+        }
+
+        foreach ([$privacyDoc, $termsDoc] as $doc) {
+            \App\Models\UserLegalAcceptance::forceCreate([
+                'school_id' => $this->school->id, 'user_id' => $user->id,
+                'document_id' => $doc->id, 'document_type' => $doc->type,
+                'document_version' => $doc->version, 'accepted_at' => now(),
+                'ip_address' => '127.0.0.1', 'user_agent' => 'test', 'created_at' => now(),
+            ]);
+        }
+    }
 }

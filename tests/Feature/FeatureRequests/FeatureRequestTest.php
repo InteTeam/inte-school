@@ -252,4 +252,16 @@ final class FeatureRequestTest extends TestCase
             ])
             ->assertStatus(403);
     }
+
+    // --- SOP: Guest redirect ---
+
+    public function test_guest_cannot_access_feature_requests(): void
+    {
+        $this->get(route('admin.settings.feature-requests'))->assertRedirect('/login');
+    }
+
+    public function test_guest_cannot_submit_feature_request(): void
+    {
+        $this->post(route('admin.settings.feature-requests.store'), [])->assertRedirect('/login');
+    }
 }

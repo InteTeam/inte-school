@@ -101,24 +101,24 @@ Each migration needs a doc in `docs/database/migrations/NNN_{name}.md`
 
 Review each test file against the SOP coverage checklist (guest redirect, wrong role 403, valid data, invalid data, multi-tenant isolation):
 
-- [ ] `Auth/LoginTest.php`
-- [ ] `Messaging/MessagingTest.php`
-- [ ] `Messaging/NotificationCascadeTest.php`
-- [ ] `Attendance/AttendanceTest.php`
-- [ ] `Calendar/CalendarTest.php`
-- [ ] `Tasks/TaskTest.php`
-- [ ] `Documents/DocumentRagTest.php`
-- [ ] `Statistics/StatisticsApiTest.php`
-- [ ] `Settings/SchoolSettingsTest.php`
-- [ ] `UserManagement/UserManagementTest.php`
-- [ ] `RootAdmin/RootAdminTest.php`
-- [ ] `Onboarding/OnboardingTest.php`
-- [ ] `Roles/RoleAccessTest.php`
-- [ ] `Models/HasSchoolScopeTest.php`
-- [ ] `Mail/MailServiceTest.php`
-- [ ] `Push/VapidPushServiceTest.php`
-- [ ] `FeatureRequests/FeatureRequestTest.php`
-- [ ] `School/SchoolModelTest.php`
+- [x] `Auth/LoginTest.php` — 3/4 applicable criteria covered (no role/tenant at login layer)
+- [x] `Messaging/MessagingTest.php` — added guest redirect, wrong role (parent 403), validation (body, type, recipient)
+- [x] `Messaging/NotificationCascadeTest.php` — 2/5 (service-level test, guest/role N/A)
+- [x] `Attendance/AttendanceTest.php` — added guest redirect, parent/student 403, multi-tenant isolation
+- [x] `Calendar/CalendarTest.php` — added guest redirect, parent 403, multi-tenant isolation
+- [x] `Tasks/TaskTest.php` — added guest redirect, parent 403, multi-tenant isolation
+- [x] `Documents/DocumentRagTest.php` — added guest redirect (was 5/6, now 6/6)
+- [x] `Statistics/StatisticsApiTest.php` — 5/5 applicable criteria covered (API key auth, not role-based)
+- [x] `Settings/SchoolSettingsTest.php` — added guest redirect, multi-tenant isolation
+- [x] `UserManagement/UserManagementTest.php` — added guest redirect (3 routes), teacher 403
+- [x] `RootAdmin/RootAdminTest.php` — 3/5 covered (guest, role, success already present)
+- [x] `Onboarding/OnboardingTest.php` — added guest redirect (GET + POST)
+- [x] `Roles/RoleAccessTest.php` — added guest redirect for all 4 role dashboards
+- [x] `Models/HasSchoolScopeTest.php` — 3/3 applicable criteria covered (unit test)
+- [x] `Mail/MailServiceTest.php` — 2/3 applicable (service test, fallback ✅)
+- [x] `Push/VapidPushServiceTest.php` — 2/3 applicable (service test, fallback ✅)
+- [x] `FeatureRequests/FeatureRequestTest.php` — added guest redirect (view + submit)
+- [x] `School/SchoolModelTest.php` — 3/4 applicable criteria covered (unit test)
 
 ---
 

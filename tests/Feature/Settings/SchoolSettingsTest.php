@@ -251,4 +251,29 @@ final class SchoolSettingsTest extends TestCase
 
         $response->assertStatus(403);
     }
+
+    // --- SOP: Guest redirect ---
+
+    public function test_guest_cannot_access_settings(): void
+    {
+        $this->get(route('admin.settings.general'))->assertRedirect('/login');
+    }
+
+    // --- SOP: Multi-tenant isolation ---
+
+    public function test_settings_scoped_to_school(): void
+    {
+        // Update school A settings
+        $this->actingAs($this->admin)
+            ->withSession($this->schoolSession())
+            ->put(route('admin.settings.notifications.update'), [
+                'sms_fallback_enabled' => true,
+            ]);
+
+        // School B should have its own independent defaults (not affected by school A update)
+        $otherSchool = School::factory()->create();
+        $otherSetting = $otherSchool->getNotificationSetting('sms_fallback_enabled');
+        // School B should NOT have the value we just set on school A
+        $this->assertNotTrue($otherSetting);
+    }
 }

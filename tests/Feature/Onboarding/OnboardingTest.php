@@ -163,4 +163,16 @@ final class OnboardingTest extends TestCase
         $response->assertRedirect('/onboarding/step-2');
         $this->assertSame('My School', session('onboarding.step1.name'));
     }
+
+    // --- SOP: Guest redirect ---
+
+    public function test_guest_cannot_access_onboarding(): void
+    {
+        $this->get('/onboarding/step-1')->assertRedirect('/login');
+    }
+
+    public function test_guest_cannot_post_onboarding(): void
+    {
+        $this->post('/onboarding/step-1', [])->assertRedirect('/login');
+    }
 }

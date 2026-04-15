@@ -307,4 +307,53 @@ final class TaskTest extends TestCase
         // Should have dispatched SendBulkMessageJob or fired directly for the guardian
         $this->assertDatabaseHas('messages', ['type' => 'attendance_alert']);
     }
+
+    // --- SOP: Guest redirect ---
+
+    public function test_guest_cannot_access_tasks(): void
+    {
+        $this->get(route('teacher.tasks.index'))->assertRedirect('/login');
+    }
+
+    public function test_guest_cannot_create_task(): void
+    {
+        $this->post(route('teacher.tasks.store'), [])->assertRedirect('/login');
+    }
+
+    // --- SOP: Wrong role ---
+
+    public function test_parent_cannot_access_task_routes(): void
+    {
+        $parent = User::factory()->create(['email' => 'task-parent@example.com']);
+        $this->school->users()->attach($parent->id, [
+            'id' => Str::ulid(), 'role' => 'parent',
+            'accepted_at' => now(), 'invited_at' => now(),
+        ]);
+
+        $this->withoutExceptionHandling();
+        $this->expectException(\Symfony\Component\HttpKernel\Exception\HttpException::class);
+
+        $this->actingAs($parent)
+            ->withSession(['current_school_id' => $this->school->id])
+            ->get(route('teacher.tasks.index'));
+    }
+
+    // --- SOP: Multi-tenant isolation ---
+
+    public function test_tasks_scoped_to_school(): void
+    {
+        Task::forceCreate([
+            'school_id' => $this->school->id,
+            'type' => 'staff_task',
+            'title' => 'School A task',
+            'status' => 'todo',
+            'assigned_by_id' => $this->teacher->id,
+        ]);
+
+        $otherSchool = School::factory()->create();
+        $this->actingAs($this->admin)->withSession(['current_school_id' => $otherSchool->id]);
+
+        $visible = Task::where('title', 'School A task')->count();
+        $this->assertSame(0, $visible);
+    }
 }

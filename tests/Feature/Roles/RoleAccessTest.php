@@ -171,4 +171,26 @@ final class RoleAccessTest extends TestCase
         // EnsureSchoolContext redirects non-members to login
         $response->assertRedirect('/login');
     }
+
+    // --- SOP: Guest redirect ---
+
+    public function test_guest_cannot_access_admin_dashboard(): void
+    {
+        $this->get('/admin/dashboard')->assertRedirect('/login');
+    }
+
+    public function test_guest_cannot_access_teacher_dashboard(): void
+    {
+        $this->get('/teacher/dashboard')->assertRedirect('/login');
+    }
+
+    public function test_guest_cannot_access_parent_dashboard(): void
+    {
+        $this->get('/parent/dashboard')->assertRedirect('/login');
+    }
+
+    public function test_guest_cannot_access_student_dashboard(): void
+    {
+        $this->get('/student/dashboard')->assertRedirect('/login');
+    }
 }

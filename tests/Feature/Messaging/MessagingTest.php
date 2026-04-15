@@ -236,4 +236,131 @@ final class MessagingTest extends TestCase
         $count = Message::query()->where('id', $message->id)->count();
         $this->assertSame(0, $count);
     }
+
+    // --- SOP: Guest redirect ---
+
+    public function test_guest_cannot_access_messages(): void
+    {
+        $this->get(route('messages.index'))->assertRedirect('/login');
+    }
+
+    public function test_guest_cannot_send_message(): void
+    {
+        $this->post(route('messages.send'), [])->assertRedirect('/login');
+    }
+
+    // --- SOP: Wrong role ---
+
+    public function test_parent_cannot_send_message(): void
+    {
+        $this->fulfillLegalRequirements($this->parent);
+
+        $this->withoutExceptionHandling();
+        $this->expectException(\Symfony\Component\HttpKernel\Exception\HttpException::class);
+
+        $this->actingAs($this->parent)
+            ->withSession(['current_school_id' => $this->school->id])
+            ->post(route('messages.send'), [
+                'type' => 'announcement',
+                'body' => 'Should not be allowed',
+                'recipient_id' => $this->admin->id,
+            ]);
+    }
+
+    // --- SOP: Validation ---
+
+    public function test_send_requires_body(): void
+    {
+        $this->fulfillLegalRequirements($this->admin);
+
+        $response = $this->actingAs($this->admin)
+            ->withSession(['current_school_id' => $this->school->id])
+            ->post(route('messages.send'), [
+                'type' => 'announcement',
+                'body' => '',
+                'recipient_id' => $this->parent->id,
+            ]);
+
+        $response->assertSessionHasErrors('body');
+    }
+
+    public function test_send_requires_valid_type(): void
+    {
+        $this->fulfillLegalRequirements($this->admin);
+
+        $response = $this->actingAs($this->admin)
+            ->withSession(['current_school_id' => $this->school->id])
+            ->post(route('messages.send'), [
+                'type' => 'invalid_type',
+                'body' => 'Test message',
+                'recipient_id' => $this->parent->id,
+            ]);
+
+        $response->assertSessionHasErrors('type');
+    }
+
+    public function test_send_requires_recipient_or_class(): void
+    {
+        $this->fulfillLegalRequirements($this->admin);
+
+        $response = $this->actingAs($this->admin)
+            ->withSession(['current_school_id' => $this->school->id])
+            ->post(route('messages.send'), [
+                'type' => 'announcement',
+                'body' => 'No recipient specified',
+            ]);
+
+        $response->assertSessionHasErrors('recipient_id');
+    }
+
+    // --- Helper ---
+
+    private function fulfillLegalRequirements(User $user): void
+    {
+        $privacyDoc = SchoolLegalDocument::withoutGlobalScope(\App\Models\Scopes\SchoolScope::class)
+            ->where('school_id', $this->school->id)->where('type', 'privacy_policy')->first();
+
+        if ($privacyDoc === null) {
+            $privacyDoc = SchoolLegalDocument::forceCreate([
+                'school_id' => $this->school->id,
+                'type' => 'privacy_policy',
+                'content' => '<p>Privacy</p>',
+                'version' => '1.0',
+                'is_published' => true,
+                'published_at' => now(),
+                'published_by' => $this->rootAdmin->id,
+                'created_by' => $this->rootAdmin->id,
+            ]);
+        }
+
+        $termsDoc = SchoolLegalDocument::withoutGlobalScope(\App\Models\Scopes\SchoolScope::class)
+            ->where('school_id', $this->school->id)->where('type', 'terms_conditions')->first();
+
+        if ($termsDoc === null) {
+            $termsDoc = SchoolLegalDocument::forceCreate([
+                'school_id' => $this->school->id,
+                'type' => 'terms_conditions',
+                'content' => '<p>Terms</p>',
+                'version' => '1.0',
+                'is_published' => true,
+                'published_at' => now(),
+                'published_by' => $this->rootAdmin->id,
+                'created_by' => $this->rootAdmin->id,
+            ]);
+        }
+
+        foreach ([$privacyDoc, $termsDoc] as $doc) {
+            UserLegalAcceptance::forceCreate([
+                'school_id' => $this->school->id,
+                'user_id' => $user->id,
+                'document_id' => $doc->id,
+                'document_type' => $doc->type,
+                'document_version' => $doc->version,
+                'accepted_at' => now(),
+                'ip_address' => '127.0.0.1',
+                'user_agent' => 'test',
+                'created_at' => now(),
+            ]);
+        }
+    }
 }
