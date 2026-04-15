@@ -15,34 +15,45 @@
 
 These are never modified directly. Customise via props or wrapper components.
 
+> **Installed** = file exists in `resources/js/Components/ui/`. **Planned** = listed in shadcn registry but not yet installed.
+
+### Installed
+
+| Component | Import | Use for | Used by features |
+|---|---|---|---|
+| `avatar` | `@/Components/ui/avatar` | User/school avatars | _not yet used in pages_ |
+| `badge` | `@/Components/ui/badge` | Status badges, labels | Tasks (template indicator), Admin (student/school status), RootAdmin (school status) |
+| `button` | `@/Components/ui/button` | All buttons — `variant` prop for style | Auth, Onboarding, Admin, Teacher, Settings — nearly every page |
+| `card` | `@/Components/ui/card` | Content cards | Auth (login/register), RootAdmin (dashboard stats) |
+| `dialog` | `@/Components/ui/dialog` | Modal dialogs | _not yet used in pages_ |
+| `dropdown-menu` | `@/Components/ui/dropdown-menu` | Contextual menus | _not yet used in pages_ |
+| `input` | `@/Components/ui/input` | Text inputs | Auth, Onboarding, Admin Settings, Teacher forms |
+| `label` | `@/Components/ui/label` | Form labels | Paired with every Input across all form pages |
+| `select` | `@/Components/ui/select` | Dropdowns | Teacher Messages (class select), Teacher Homework (class select), Admin Messages |
+| `switch` | `@/Components/ui/switch` | Toggle switch | Admin Settings General (feature toggles) |
+| `textarea` | `@/Components/ui/textarea` | Multi-line text | Teacher Messages (compose body), Teacher Homework (description) |
+| `toast` | `@/Components/ui/toast` | Notification toasts | Available via Toaster, flash message display |
+| `toaster` | `@/Components/ui/toaster` | Toast display container | Mounted in layouts for flash messages |
+
+### Planned (not yet installed)
+
 | Component | Import | Use for |
 |---|---|---|
-| `button` | `@/Components/ui/button` | All buttons — use `variant` prop for style |
-| `input` | `@/Components/ui/input` | Text inputs |
-| `textarea` | `@/Components/ui/textarea` | Multi-line text |
-| `label` | `@/Components/ui/label` | Form labels |
 | `checkbox` | `@/Components/ui/checkbox` | Checkboxes |
-| `select` | `@/Components/ui/select` | Dropdowns |
-| `dialog` | `@/Components/ui/dialog` | Modal dialogs |
 | `alert-dialog` | `@/Components/ui/alert-dialog` | Confirmation dialogs (destructive actions) |
-| `dropdown-menu` | `@/Components/ui/dropdown-menu` | Contextual menus |
-| `badge` | `@/Components/ui/badge` | Status badges, labels |
-| `card` | `@/Components/ui/card` | Content cards |
 | `table` | `@/Components/ui/table` | Data tables |
 | `tabs` | `@/Components/ui/tabs` | Tabbed navigation |
 | `sheet` | `@/Components/ui/sheet` | Slide-in panels |
 | `separator` | `@/Components/ui/separator` | Visual dividers |
 | `popover` | `@/Components/ui/popover` | Floating content |
 | `command` | `@/Components/ui/command` | Command palette / search |
-| `avatar` | `@/Components/ui/avatar` | User/school avatars |
 | `skeleton` | `@/Components/ui/skeleton` | Loading states |
-| `toast` | via `use-toast` hook | Notification toasts |
 
 ---
 
 ## Atoms (`resources/js/Components/Atoms/`)
 
-_Populated as atoms are built. Update this section in SOP Step 9._
+_No custom atoms yet — all atomic components delegate to shadcn/ui. Update this section when atoms are extracted._
 
 | Component | Import | Use for | Added in feature |
 |---|---|---|---|
@@ -52,31 +63,31 @@ _Populated as atoms are built. Update this section in SOP Step 9._
 
 ## Molecules (`resources/js/Components/Molecules/`)
 
-_Populated as molecules are built. Update this section in SOP Step 9._
-
-| Component | Import | Use for | Added in feature |
-|---|---|---|---|
-| — | — | — | — |
+| Component | Import | Use for | Props | Added in feature |
+|---|---|---|---|---|
+| `WizardShell` | `@/Components/Molecules/WizardShell` | Multi-step wizard with progress indicator | `steps: {label, number}[]`, `currentStep: number`, `children`, `title: string` | Onboarding |
 
 ---
 
 ## Organisms (`resources/js/Components/Organisms/`)
 
-_Populated as organisms are built. Update this section in SOP Step 9._
+| Component | Import | Use for | Props | Added in feature |
+|---|---|---|---|---|
+| `SchoolNavBar` | `@/Components/Organisms/SchoolNavBar` | Top navigation bar with school branding, dashboard link, user logout | Uses Inertia `auth.user` page props | SchoolLayout (all school pages) |
+| `TodoList` | `@/Components/Organisms/TodoList` | Draggable, sortable todo/task items with checkbox toggle and deadline display | `taskId: string`, `items: TodoItem[]` | Tasks (Teacher/Tasks/Index) |
 
-| Component | Import | Use for | Added in feature |
-|---|---|---|---|
-| — | — | — | — |
+**TodoList external deps:** `@dnd-kit/core`, `@dnd-kit/sortable`, `@dnd-kit/utilities`
 
 ---
 
 ## Layouts (`resources/js/layouts/`)
 
-| Layout | Use for |
-|---|---|
-| `AuthLayout` | Login, register, 2FA, password reset, device registration |
-| `SchoolLayout` | All authenticated school app pages (admin, teacher, support, student) |
-| `ParentLayout` | Parent PWA views — minimal, mobile-first |
+| Layout | Use for | Injects |
+|---|---|---|
+| `AuthLayout` | Login, register, 2FA, password reset, device registration, invitation acceptance | Centred card with logo + app branding |
+| `SchoolLayout` | All authenticated school pages (admin, teacher, support, student) | `SchoolNavBar` organism at top |
+| `ParentLayout` | Parent PWA views — minimal, mobile-first (max-width 32rem) | Compact header |
+| `RootAdminLayout` | Root admin panel (dashboard, schools, feature requests, legal templates) | Nav links to dashboard + schools |
 
 ---
 
@@ -103,35 +114,77 @@ _Populated as organisms are built. Update this section in SOP Step 9._
 
 _Updated in SOP Step 9 after each feature is completed._
 
-### Auth
+### Auth (7 pages)
 | Component | Path | Notes |
 |---|---|---|
-| — | — | Populated after Phase 1 |
+| Button, Input, Label | `ui/` | Login, ForgotPassword, ResetPassword forms |
+| Card, CardHeader, CardTitle, CardDescription, CardContent | `ui/card` | Auth page containers (via AuthLayout) |
+| — | `Auth/TwoFactor.tsx` | 2FA challenge page |
+| — | `Auth/AcceptInvitation.tsx` | Token-based invitation acceptance |
+| — | `Auth/DeviceRegistration.tsx` | VAPID push device registration |
 
-### Messaging
+### Onboarding (4 pages)
 | Component | Path | Notes |
 |---|---|---|
-| — | — | Populated after Phase 2 |
+| WizardShell | `Molecules/WizardShell` | Step progress indicator on all 4 pages |
+| Button, Input, Label | `ui/` | Form controls on each step |
 
-### Attendance
+### Messaging (4 pages: Admin + Teacher compose, Parent inbox + thread)
 | Component | Path | Notes |
 |---|---|---|
-| — | — | Populated after Phase 2 |
+| Select, SelectContent, SelectItem, SelectTrigger, SelectValue | `ui/select` | Class/recipient selection |
+| Textarea | `ui/textarea` | Message body compose |
+| Button, Label | `ui/` | Form actions |
 
-### Calendar & Scheduler
+### Attendance (1 page: Teacher register)
 | Component | Path | Notes |
 |---|---|---|
-| — | — | Populated after Phase 3 |
+| Button | `ui/button` | Mark attendance actions |
+| Badge | `ui/badge` | Status indicators (present/absent/late) |
 
-### Tasks
+### Calendar (2 pages: Admin + Teacher calendar index)
 | Component | Path | Notes |
 |---|---|---|
-| — | — | Populated after Phase 3 |
+| Button | `ui/button` | Event actions |
+| Card | `ui/card` | Calendar event cards |
 
-### Documents & RAG
+### Tasks (2 pages: Teacher index + homework create)
 | Component | Path | Notes |
 |---|---|---|
-| — | — | Populated after Phase 4 |
+| TodoList | `Organisms/TodoList` | Draggable task items on Teacher/Tasks/Index |
+| Badge | `ui/badge` | Template indicator on todo items |
+| Select, SelectContent, SelectItem, SelectTrigger, SelectValue | `ui/select` | Class selection on homework create |
+| Button, Input, Label, Textarea | `ui/` | Form controls |
+
+### Documents & RAG (3 pages: Admin index + upload, RAG query)
+| Component | Path | Notes |
+|---|---|---|
+| Button | `ui/button` | Upload + delete actions |
+| Badge | `ui/badge` | Processing status indicators |
+
+### Settings (6 pages)
+| Component | Path | Notes |
+|---|---|---|
+| Button, Input, Label | `ui/` | All settings forms |
+| Switch | `ui/switch` | Feature toggles in General settings |
+| Card | `ui/card` | Settings section containers |
+
+### Root Admin (4 pages)
+| Component | Path | Notes |
+|---|---|---|
+| Badge | `ui/badge` | School active/inactive status |
+| Card | `ui/card` | Dashboard stats cards |
+| Button | `ui/button` | Actions |
+
+### Parent Views (6 pages — ParentLayout)
+| Component | Path | Notes |
+|---|---|---|
+| — | — | Minimal, layout-driven — no custom components yet |
+
+### Student Views (4 pages)
+| Component | Path | Notes |
+|---|---|---|
+| — | — | Minimal, layout-driven — no custom components yet |
 
 ---
 

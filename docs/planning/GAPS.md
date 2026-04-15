@@ -77,23 +77,23 @@ Each migration needs a doc in `docs/database/migrations/NNN_{name}.md`
 
 ## Component Registry
 
-- [ ] Populate `docs/COMPONENT_REUSE_CHECKLIST.md` Atoms section from `resources/js/components/Atoms/`
-- [ ] Populate Molecules section from `resources/js/components/Molecules/`
-- [ ] Populate Organisms section from `resources/js/components/Organisms/`
-- [ ] Verify shadcn/ui inventory matches `resources/js/components/ui/`
-- [ ] Fill per-feature component sections (which components each feature uses)
+- [x] Populate `docs/COMPONENT_REUSE_CHECKLIST.md` Atoms section from `resources/js/components/Atoms/`
+- [x] Populate Molecules section from `resources/js/components/Molecules/`
+- [x] Populate Organisms section from `resources/js/components/Organisms/`
+- [x] Verify shadcn/ui inventory matches `resources/js/components/ui/`
+- [x] Fill per-feature component sections (which components each feature uses)
 
 ---
 
 ## New Tests to Write
 
-- [ ] `AcceptInvitationTest.php` — token expiry, single-use, role assignment
-- [ ] `DeviceRegistrationTest.php` — cookie signing, device trust
-- [ ] `CsvImportSecurityTest.php` — CSV injection protection (=, -, +, @ prefixes)
-- [ ] `FileUploadValidationTest.php` — MIME type enforcement, SVG rejection, size limits
-- [ ] `ApiKeyLifecycleTest.php` — creation, hashing, rotation, scoping, expiry
-- [ ] `RateLimitingTest.php` — login, password reset, 2FA, API endpoints
-- [ ] `LegalAcceptanceFlowTest.php` — middleware enforcement, version tracking
+- [x] `AcceptInvitationTest.php` — token expiry, single-use, role assignment, password validation
+- [x] `DeviceRegistrationTest.php` — fingerprint upsert, push subscription validation, disabled user
+- [x] `CsvImportSecurityTest.php` — CSV injection protection (=, -, +, @, \t, \r prefixes), HTTP flow
+- [x] `FileUploadValidationTest.php` — MIME type enforcement, SVG rejection, size limits, role gates
+- [x] `ApiKeyLifecycleTest.php` — creation, hashing, rotation, scoping, expiry, cross-tenant
+- [x] `RateLimitingTest.php` — API throttle (60/min), hardware throttle, rate limit headers
+- [x] `LegalAcceptanceFlowTest.php` — middleware enforcement, version tracking, root admin bypass
 
 ---
 
