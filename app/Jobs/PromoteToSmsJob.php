@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
+use App\Models\Message;
 use App\Models\MessageRecipient;
-use App\Models\Scopes\SchoolScope;
 use App\Models\School;
+use App\Models\Scopes\SchoolScope;
 use App\Models\User;
 use App\Services\SmsService;
 use Illuminate\Bus\Queueable;
@@ -50,13 +51,32 @@ class PromoteToSmsJob implements ShouldQueue
             return;
         }
 
+        // Abort if this message type is not in the allowed fallback types
+        $message = Message::withoutGlobalScope(SchoolScope::class)->find($this->messageId);
+
+        if ($message === null) {
+            return;
+        }
+
+        $allowedTypes = (array) $school->getNotificationSetting('sms_fallback_types', ['attendance_alert', 'trip_permission']);
+
+        if (! in_array($message->type, $allowedTypes, true)) {
+            return;
+        }
+
         $user = User::find($this->recipientId);
 
         if ($user === null || empty($user->phone)) {
             return;
         }
 
-        $smsService->send($user->phone, __('messages.sms_fallback_body'));
+        $smsService->send(
+            $user->phone,
+            __('messages.sms_fallback_body'),
+            $this->schoolId,
+            $this->recipientId,
+            $this->messageId,
+        );
     }
 
     public function failed(\Throwable $exception): void

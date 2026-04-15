@@ -35,4 +35,11 @@ return [
         ],
     ],
 
+    'govuk_notify' => [
+        'api_key' => env('GOVUK_NOTIFY_API_KEY'),
+        'sms_template_id' => env('GOVUK_NOTIFY_SMS_TEMPLATE_ID'),
+        'free_allowance' => (int) env('GOVUK_NOTIFY_FREE_ALLOWANCE', 5000),
+        'cost_pence' => (int) env('GOVUK_NOTIFY_COST_PENCE', 3), // 2.4p + VAT ≈ 3p
+    ],
+
 ];
